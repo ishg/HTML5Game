@@ -56,35 +56,11 @@ $(document).ready(function() {
 		//Create the tower base
 		ctx.fillStyle = "#B0171F";
 		ctx.fillRect((w - bw) / 2, h - bh, bw, bh);
-
-
-
 	}
-	canvas.addEventListener("mouseDown", shoot, false);
-
-	function shoot() {
-		var targetX = mouseX,
-			targetY = mouseY,
-			start_time = d.getMilliseconds();
-		
-		//Calculate angle
-		var y = Math.abs(ch - targetY),
-			x = Math.abs(targetX - cw);
-		var theta = Math.atan2(y, x);
-		
-		
-		
-
-	}
-	
-	function getLineXYatPercent(startPt,endPt,percent) {
-		var dx = endPt.x-startPt.x;
-		var dy = endPt.y-startPt.y;
-		var X = startPt.x + dx*percent;
-		var Y = startPt.y + dy*percent;
-		return( {x:X,y:Y} );
-	}
-
+    
+    /*
+     *   Draw the turret.
+     */
 	function drawTurret() {
 		if (mouseY <= ch) {
 			ctx.beginPath();
