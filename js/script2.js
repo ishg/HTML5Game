@@ -3,11 +3,13 @@ $(document).ready(function(){
     var canvas = $("#canvas")[0];
     var c = canvas.getContext("2d");
     var CANVAS_WIDTH = 450, CANVAS_HEIGHT= 450;
+	var axl = 1,balloonSpeed = 3,numBalloons = 0.96;
     var tw = 30,
 		bw = 40,
 		th = 40,
 		bh = 10;
 	var btn = $(".btn");
+	var background = Sprite("background");
 	var mouseX;
 	var mouseY;
 	$(document).mousemove(function(e) {
@@ -22,37 +24,45 @@ $(document).ready(function(){
 		c.textAlign = "center";
 		c.fillText("Bows",CANVAS_WIDTH/2,CANVAS_HEIGHT/2-100);
 		c.fillStyle = "green";
-		c.font ="50px Georgia";
-		c.textAlign = "center";
 		c.fillText("And",CANVAS_WIDTH/2,CANVAS_HEIGHT/2-50);
 		c.fillStyle = "red";
-		c.font ="50px Georgia";
-		c.textAlign = "center";
 		c.fillText("Balloons",CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
-		
 		c.fillStyle = "black";
 		c.font = "25px Calibri";
 		c.fillText("Arrow Keys to Move",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+80);
 		c.fillText("Mouse to Shoot",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+120);
-		
-		
 	}
 	welcome();
 	
 	/* CREATE THE HUD */
 	var scoreboard = {
-		x:20,
+		x:10,
 		y:20,
+		level:1,
 		height:40,
 		width:100,
 		score:0,
 		highscore:0,
 		gameover:0,
+		levellingup:7,
+		levelup:false,
 		draw:function(){
-			c.fillStyle = "#000";
-			c.fillText("Score:", this.x,this.y);
-			c.fillText(this.score, this.x+40,this.y);
-			c.fillText("High Score: "+this.highscore,370,this.y);
+			c.fillStyle = "yellow";
+			c.font = "bold 15px Calibri";
+			c.fillText("Level:"+this.level,this.x,this.y);
+			c.fillText("Score:"+this.score, this.x,this.y+20);
+			c.fillText("High Score: "+this.highscore,this.x,this.y+40);
+			if(this.levelup){
+				if(this.levellingup>=0){
+					c.font = "bold 30px Calibri";
+					c.textAlign = "center";
+					c.fillText("Level "+this.level+"!",CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
+					this.levellingup -=1;
+				}else{
+					this.levelup = false;
+					this.levellingup = 7;
+				}
+			}
 		}
 	};
 	
@@ -127,7 +137,7 @@ $(document).ready(function(){
 		}
     };
     
-    $("#wrapper").click(function(){
+    $("#canvas").click(function(){
         player.shoot();
     });
 	
@@ -154,8 +164,10 @@ $(document).ready(function(){
         };
 
         I.update = function() {
-            I.x += I.xVelocity;
+			I.x += I.xVelocity;
             I.y += I.yVelocity;
+			I.yVelocity += axl;
+			
             //Bullet is active while it is inside bounds
             I.active = I.active && I.inBounds();
         };
@@ -168,13 +180,15 @@ $(document).ready(function(){
 		I = I||{};
 		I.active = true;
 		I.age = Math.floor(Math.random()*128);
+		I.explosion = 10.0;
+		I.exploding = false;
 		
 		I.color = "#FF0000";
 		
 		I.x = CANVAS_WIDTH / 4 + Math.random() * CANVAS_WIDTH/2;
 		I.y = 0;
 		I.xVelocity = 0;
-		I.yVelocity = 5;
+		I.yVelocity = balloonSpeed;
 		
 		I.width = 32;
 		I.height = 32;
@@ -197,13 +211,22 @@ $(document).ready(function(){
 			this.sprite.draw(c,this.x,this.y);
 		};
 		I.explode = function(){
-			this.active = false;
+			I.exploding = true;
+			I.sprite = Sprite("black_balloon");
 		};
 		I.update = function(){
-			I.x+= I.xVelocity;
-			I.y+= I.yVelocity;
-			I.xVelocity = 3* Math.sin(I.age * Math.PI/64);
-			I.age++;
+			if(!I.exploding){
+				I.x+= I.xVelocity;
+				I.y+= I.yVelocity;
+				I.xVelocity = 3* Math.sin(I.age * Math.PI/64);
+				I.age++;
+			}else{
+				if(I.explosion>=0){
+					I.explosion -=1;
+				}else{
+					this.active = false;
+				}
+			}
 			I.active = I.active && I.inBounds();
 		};
 		return I;
@@ -271,8 +294,28 @@ $(document).ready(function(){
 		enemies = enemies.filter(function(enemy){
 			return enemy.active;
 		});
-		
-		if(Math.random() >0.95){
+		if(scoreboard.score == 10){
+			balloonSpeed = 5;
+			numBalloons = 0.95;
+			scoreboard.level =2;
+			scoreboard.levelup = true;
+		}else if (scoreboard.score == 20){
+			balloonSpeed = 7;
+			numBalloons = 0.9;
+			scoreboard.level =3;
+			scoreboard.levelup = true;
+		}else if (scoreboard.score == 30){
+			balloonSpeed = 9;
+			numBalloons = 0.8;
+			scoreboard.level =4;
+			scoreboard.levelup = true;
+		}else if (scoreboard.score == 40){
+			balloonSpeed = 11;
+			numBalloons = 0.7;
+			scoreboard.level =5;
+			scoreboard.levelup = true;
+		}
+		if(Math.random() >numBalloons){
 			enemies.push(Enemy());
 		}
 		
@@ -282,8 +325,8 @@ $(document).ready(function(){
         
     function draw(){
         canvas.width = canvas.width;
+		background.draw(c,0,0);
         player.draw();
-		scoreboard.draw();
 		player.drawTurret();
         playerBullets.forEach(function(bullet) {
             bullet.draw();
@@ -291,6 +334,7 @@ $(document).ready(function(){
 		enemies.forEach(function(enemy){
 			enemy.draw();
 		});
+		scoreboard.draw();
     }
     
     player.shoot= function(){
@@ -354,9 +398,10 @@ $(document).ready(function(){
 		}else{
 			scoreboard.gameover = 0;
 			scoreboard.score = 0;
-			enemies = [];
-			playerBullets = [];
+			enemies.length = 0;
+			playerBullets.length = 0;
 			btn.prop("disabled",true);
+			balloonSpeed = 4;
 			start_game();
 		}
 	});
