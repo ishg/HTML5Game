@@ -77,11 +77,10 @@ $(document).ready(function () {
         },
         update: function () {
             if (scoreboard.score == scoreboard.level * 10) {
-                balloonSpeed = balloonSpeed * 1.5;
-                numBalloons = 1 - (scoreboard.level + 2) / 100.0;
-                console.log(numBalloons);
-                scoreboard.level += 1;
-                scoreboard.levelup = true;
+                balloonSpeed = balloonSpeed + 1;
+				numBalloons = 1-(scoreboard.level*2+1)/100.0 - 0.02;
+				scoreboard.level +=1;
+				scoreboard.levelup = true;
             }
         }
     };
