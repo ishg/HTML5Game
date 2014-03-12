@@ -2,8 +2,8 @@ $(document).ready(function(){
     
     var canvas = $("#canvas")[0];
     var c = canvas.getContext("2d");
-    var CANVAS_WIDTH = 450, CANVAS_HEIGHT= 450,
-	axl = 1,balloonSpeed = 3,numBalloons = 0.96,
+    var CANVAS_WIDTH = 650, CANVAS_HEIGHT= 650,
+	axl = 1,balloonSpeed = 1,numBalloons = 0.96,
     tw = 30,
 		bw = 40,
 		th = 40,
@@ -17,6 +17,13 @@ $(document).ready(function(){
 		mouseY = e.pageY;
 	});
 	
+	document.documentElement.addEventListener('keydown', function (e) {
+    if ( ( e.keycode || e.which ) == 32) {
+        e.preventDefault();
+		player.shoot();
+    }
+}, false);
+	
 	function welcome(){
 		c.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 		c.fillStyle = "blue";
@@ -29,8 +36,9 @@ $(document).ready(function(){
 		c.fillText("Balloons",CANVAS_WIDTH/2,CANVAS_HEIGHT/2);
 		c.fillStyle = "black";
 		c.font = "25px Calibri";
-		c.fillText("Arrow Keys to Move",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+80);
-		c.fillText("Mouse to Shoot",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+120);
+		c.fillText("W and D to Move",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+80);
+		c.fillText("Arrow Keys to aim",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+120);
+		c.fillText("Spacebar to Shoot",CANVAS_WIDTH/2,CANVAS_HEIGHT/2+160);
 	}
 	welcome();
 	
@@ -65,25 +73,11 @@ $(document).ready(function(){
 			}
 		},
 		update:function(){
-			if(scoreboard.score == 10 && scoreboard.level ==1){
-				balloonSpeed = 5;
-				numBalloons = 0.95;
-				scoreboard.level =2;
-				scoreboard.levelup = true;
-			}else if (scoreboard.score == 20 && scoreboard.level ==2){
-				balloonSpeed = 7;
-				numBalloons = 0.9;
-				scoreboard.level =3;
-				scoreboard.levelup = true;
-			}else if (scoreboard.score == 30 && scoreboard.level ==3){
-				balloonSpeed = 9;
-				numBalloons = 0.8;
-				scoreboard.level =4;
-				scoreboard.levelup = true;
-			}else if (scoreboard.score == 40 && scoreboard.level ==4){
-				balloonSpeed = 11;
-				numBalloons = 0.7;
-				scoreboard.level =5;
+			if(scoreboard.score == scoreboard.level*10){
+				balloonSpeed = balloonSpeed * 1.5;
+				numBalloons = 1-(scoreboard.level+2)/100.0;
+				console.log(numBalloons);
+				scoreboard.level +=1;
 				scoreboard.levelup = true;
 			}
 		}
@@ -99,45 +93,36 @@ $(document).ready(function(){
 		tx:CANVAS_WIDTH/2,
 		ty:CANVAS_HEIGHT/2,
         draw:function(){
-            c.fillStyle = this.color;
+            //Draw the tank
+			c.fillStyle = this.color;
             c.fillRect(this.x,this.y, this.width, this.height);
-        },
-		update:function(){
-			if(keydown.a){
-				player.x -=5;
-			}
 			
-			if(keydown.d){
-				player.x +=5;   
-			}
-		},
-		drawTurret: function(){
 			var center = player.midpoint();
-			if(mouseY <= (center.y-(this.height/2))){
+			if(this.ty <= (center.y-(this.height/2))){
 				//Draw the aim
 				c.beginPath();
 				c.moveTo(center.x,center.y-(this.height/2));
-				c.lineTo(mouseX,mouseY);
+				c.lineTo(this.tx,this.ty);
 				c.strokeStyle = "silver";
 				c.stroke();
 				//Draw Cross-hairs
 				c.beginPath();
-				c.moveTo(mouseX - 5, mouseY);
-				c.lineTo(mouseX + 5, mouseY);
-				c.moveTo(mouseX, mouseY + 5);
-				c.lineTo(mouseX, mouseY - 5);
-				c.strokeStyle = "silver";
+				c.moveTo(this.tx - 5, this.ty);
+				c.lineTo(this.tx + 5, this.ty);
+				c.moveTo(this.tx, this.ty + 5);
+				c.lineTo(this.tx, this.ty - 5);
 				c.lineWidth = 1;
+				c.strokeStyle = "black";
 				c.stroke();
 				//Calculate angle
-				var y = Math.abs(center.y-(this.height/2) - mouseY),
-				x = Math.abs(mouseX - center.x),
+				var y = Math.abs(center.y-(this.height/2) - this.ty),
+				x = Math.abs(this.tx - center.x),
 				theta = Math.atan2(y, x),
 				dX = 20 * Math.cos(theta),
 				dY = 20 * Math.sin(theta),
 				newY = center.y - (this.height/2) - dY,
 				newX = 0;
-				if (mouseX >= center.x) {
+				if (this.tx >= center.x) {
 					newX = center.x + dX;
 				} else {
 					newX = center.x - dX;
@@ -153,14 +138,14 @@ $(document).ready(function(){
 			}else {
 				//Don't let turret go below horizontal
 				c.moveTo(center.x, center.y-(this.height/2));
-				c.lineTo(mouseX, center.y-(this.height/2));
-				c.strokeStyle = "silver";
+				c.lineTo(this.tx, center.y-(this.height/2));
+				c.strokeStyle = "black";
 				c.stroke();
 				c.beginPath();
 				c.moveTo(center.x, center.y-(this.height/2));
 				c.lineWidth = 10;
 				c.lineCap = "round";
-				if (mouseX >= center.x) {
+				if (this.tx >= center.x) {
 					c.lineTo(center.x + 20, center.y-(this.height/2));
 				} else {
 					c.lineTo(center.x - 20, center.y-(this.height/2));
@@ -168,14 +153,32 @@ $(document).ready(function(){
 				c.strokeStyle = "#458B00";
 				c.stroke();
 			}
-		}
+        },
+		update:function(){
+			if(keydown.a){
+				this.x -=5;
+			}
+			
+			if(keydown.d){
+				this.x +=5;   
+			}
+			
+			if(keydown.left){
+				this.tx -= 15;
+			}
+			
+			if (keydown.right){
+				this.tx += 15;
+			}
+			
+			if(keydown.up){
+				this.ty -= 15;
+			}
+			if(keydown.down){
+				this.ty += 15;
+			}
+		},
     };
-    
-    $("#canvas").click(function(){
-        player.shoot();
-    });
-	
-	
     
     var playerBullets = [];
     function Bullet(I) {
@@ -332,8 +335,9 @@ $(document).ready(function(){
     function draw(){
         canvas.width = canvas.width;
 		background.draw(c,0,0);
-        player.draw();
-		player.drawTurret();
+        player.update();
+		player.draw();
+		//player.drawTurret();
         playerBullets.forEach(function(bullet) {
             bullet.draw();
         });
@@ -345,14 +349,14 @@ $(document).ready(function(){
     
     player.shoot= function(){
         var bulletPosition = this.midpoint();
-		var y = Math.abs(bulletPosition.y-(this.height/2)-mouseY),
-		x = Math.abs(bulletPosition.x - mouseX),
+		var y = Math.abs(bulletPosition.y-(this.height/2)-player.ty),
+		x = Math.abs(bulletPosition.x - player.tx),
 		distance = Math.sqrt(y*y+x*x),
 		theta = Math.atan2(y,x);
-		var Vz = distance/10;
+		var Vz = distance/15;
 		var Vy = Vz * Math.sin(theta);
 		var Vx = Vz * Math.cos(theta);
-		if(mouseX >= bulletPosition.x){
+		if(player.tx >= bulletPosition.x){
 			Vx = Vx;
 		}else{
 			Vx = -Vx;
