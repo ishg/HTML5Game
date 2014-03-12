@@ -2,16 +2,16 @@ $(document).ready(function(){
     
     var canvas = $("#canvas")[0];
     var c = canvas.getContext("2d");
-    var CANVAS_WIDTH = 450, CANVAS_HEIGHT= 450;
-	var axl = 1,balloonSpeed = 3,numBalloons = 0.96;
-    var tw = 30,
+    var CANVAS_WIDTH = 450, CANVAS_HEIGHT= 450,
+	axl = 1,balloonSpeed = 3,numBalloons = 0.96,
+    tw = 30,
 		bw = 40,
 		th = 40,
-		bh = 10;
-	var btn = $(".btn");
-	var background = Sprite("background");
-	var mouseX;
-	var mouseY;
+		bh = 10,
+	btn = $(".btn"),
+	background = Sprite("background"),
+	mouseX,
+	mouseY;
 	$(document).mousemove(function(e) {
 		mouseX = e.pageX;
 		mouseY = e.pageY;
@@ -63,6 +63,29 @@ $(document).ready(function(){
 					this.levellingup = 7;
 				}
 			}
+		},
+		update:function(){
+			if(scoreboard.score == 10 && scoreboard.level ==1){
+				balloonSpeed = 5;
+				numBalloons = 0.95;
+				scoreboard.level =2;
+				scoreboard.levelup = true;
+			}else if (scoreboard.score == 20 && scoreboard.level ==2){
+				balloonSpeed = 7;
+				numBalloons = 0.9;
+				scoreboard.level =3;
+				scoreboard.levelup = true;
+			}else if (scoreboard.score == 30 && scoreboard.level ==3){
+				balloonSpeed = 9;
+				numBalloons = 0.8;
+				scoreboard.level =4;
+				scoreboard.levelup = true;
+			}else if (scoreboard.score == 40 && scoreboard.level ==4){
+				balloonSpeed = 11;
+				numBalloons = 0.7;
+				scoreboard.level =5;
+				scoreboard.levelup = true;
+			}
 		}
 	};
 	
@@ -73,10 +96,21 @@ $(document).ready(function(){
         height:32,
         x:CANVAS_WIDTH/2-tw/2,
         y:CANVAS_HEIGHT-th,
+		tx:CANVAS_WIDTH/2,
+		ty:CANVAS_HEIGHT/2,
         draw:function(){
             c.fillStyle = this.color;
             c.fillRect(this.x,this.y, this.width, this.height);
         },
+		update:function(){
+			if(keydown.a){
+				player.x -=5;
+			}
+			
+			if(keydown.d){
+				player.x +=5;   
+			}
+		},
 		drawTurret: function(){
 			var center = player.midpoint();
 			if(mouseY <= (center.y-(this.height/2))){
@@ -269,14 +303,6 @@ $(document).ready(function(){
     
     function update(){
         
-        if(keydown.left){
-            player.x -=5;
-        }
-        
-        if(keydown.right){
-            player.x +=5;   
-        }
-        
         player.x = player.x.clamp(0, CANVAS_WIDTH - player.width);
         
         playerBullets.forEach(function(bullet) {
@@ -294,27 +320,7 @@ $(document).ready(function(){
 		enemies = enemies.filter(function(enemy){
 			return enemy.active;
 		});
-		if(scoreboard.score == 10){
-			balloonSpeed = 5;
-			numBalloons = 0.95;
-			scoreboard.level =2;
-			scoreboard.levelup = true;
-		}else if (scoreboard.score == 20){
-			balloonSpeed = 7;
-			numBalloons = 0.9;
-			scoreboard.level =3;
-			scoreboard.levelup = true;
-		}else if (scoreboard.score == 30){
-			balloonSpeed = 9;
-			numBalloons = 0.8;
-			scoreboard.level =4;
-			scoreboard.levelup = true;
-		}else if (scoreboard.score == 40){
-			balloonSpeed = 11;
-			numBalloons = 0.7;
-			scoreboard.level =5;
-			scoreboard.levelup = true;
-		}
+		scoreboard.update();
 		if(Math.random() >numBalloons){
 			enemies.push(Enemy());
 		}
@@ -402,6 +408,7 @@ $(document).ready(function(){
 			playerBullets.length = 0;
 			btn.prop("disabled",true);
 			balloonSpeed = 4;
+			numBalloons = 0.96;
 			start_game();
 		}
 	});
