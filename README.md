@@ -12,13 +12,15 @@ A gravity component is also involved, the further the aim reticle is from the ca
 Instructions
 ------------
 
-W and D to move the turret.
+W and D to move the cannon.
+
 Arrow Keys to aim. 
+
 Space Bar to shoot. 
 
 
 Future Updates
-==============
+--------------
 
 Game features will include cannon power-ups, friendly hot-air balloons, and different types of enemy ballons.
 
