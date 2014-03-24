@@ -1,5 +1,7 @@
 #wrapper {
-	width: 450px;
+	width: 650px;
+	margin:auto;
+	padding-top:25px;
 }
 
 .btn{
@@ -10,4 +12,5 @@
 
 #canvas{
 	border: solid black 1px;
+	border-radius:10px;
 }
